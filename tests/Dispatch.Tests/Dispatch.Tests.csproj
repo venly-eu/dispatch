@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Dispatch\Dispatch.csproj" />
+    <ProjectReference Include="..\..\src\Dispatch\Dispatch.csproj" />
   </ItemGroup>
 
 </Project>
