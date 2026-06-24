@@ -7,9 +7,20 @@ Logging is built in and flexible. You can log all commands and queries, disable 
 
 Vesia.Dispatch uses the standard `Microsoft.Extensions.Logging` abstraction — plug in any logging provider you prefer (Serilog, NLog, etc.) and it works automatically.
 
+> [!WARNING]
+> **Assembly Registration**
+>
+> `Vesia.Dispatch` scans the assembly you provide at registration time to discover handlers. Make sure you call `AddDispatch` from the project that contains your commands, queries, and handlers — typically your **Application layer** — not from a referencing project like your API or host.
+>
+> ```csharp
+> // In your Application layer's DI registration
+> services.AddDispatch(typeof(SomeHandler).Assembly);
+> ```
+>
+> Registering from the wrong assembly will result in a `HandlerNotFoundException` at runtime.
 
 # The types
-| Type | Returns | Handlers | Use case |
+| Type | Returns | Handlers | Use case |~~~~
 |------|---------|----------|----------|
 | Command | `TResult` | Exactly one | Write operations, state changes |
 | Query | `TResult` | Exactly one | Read operations, data retrieval |
