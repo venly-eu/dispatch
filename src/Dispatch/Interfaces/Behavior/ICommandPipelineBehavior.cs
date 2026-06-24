@@ -1,6 +1,5 @@
-using Vesia.Dispatch.Interfaces.Messaging;
 
-namespace Vesia.Dispatch.Interfaces.Behavior;
+namespace Vesia.Dispatch;
 
 public interface ICommandPipelineBehavior<in TCommand, TResult>
     where TCommand : ICommand<TResult>

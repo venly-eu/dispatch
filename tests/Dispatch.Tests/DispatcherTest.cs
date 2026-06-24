@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Vesia.Dispatch.Exceptions;
-using Vesia.Dispatch.Interfaces;
 using Vesia.Dispatch.Tests.Fakes.Dispatcher;
 
 namespace Vesia.Dispatch.Tests;

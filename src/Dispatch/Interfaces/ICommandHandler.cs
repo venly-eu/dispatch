@@ -1,4 +1,4 @@
-namespace Vesia.Dispatch.Interfaces;
+namespace Vesia.Dispatch;
 
 public interface ICommandHandler<in TCommand, TResult> : IHandler
 {

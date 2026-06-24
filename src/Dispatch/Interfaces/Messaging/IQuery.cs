@@ -1,4 +1,3 @@
-namespace Vesia.Dispatch.Interfaces.Messaging;
+namespace Vesia.Dispatch;
 
 public interface IQuery<TResult> { }
-
