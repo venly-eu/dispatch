@@ -1,8 +1,6 @@
 using Microsoft.Extensions.Logging;
-using Vesia.Dispatch.Interfaces.Behavior;
-using Vesia.Dispatch.Interfaces.Messaging;
 
-namespace Vesia.Dispatch.PipelineBehaviors;
+namespace Vesia.Dispatch;
 
 public class QueryLoggingBehavior<TQuery, TResult>(ILogger<QueryLoggingBehavior<TQuery, TResult>> logger)
     : IQueryPipelineBehavior<TQuery, TResult>

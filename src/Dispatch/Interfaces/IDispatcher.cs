@@ -1,6 +1,5 @@
-using Vesia.Dispatch.Interfaces.Messaging;
 
-namespace Vesia.Dispatch.Interfaces;
+namespace Vesia.Dispatch;
 
 public interface IDispatcher
 {

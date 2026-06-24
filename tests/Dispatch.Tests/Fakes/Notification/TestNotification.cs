@@ -1,4 +1,3 @@
-using Vesia.Dispatch.Interfaces;
 
 namespace Vesia.Dispatch.Tests.Fakes.Notification;
 

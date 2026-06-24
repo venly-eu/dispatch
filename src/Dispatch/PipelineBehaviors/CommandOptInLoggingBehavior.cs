@@ -1,10 +1,7 @@
 using System.Reflection;
 using Microsoft.Extensions.Logging;
-using Vesia.Dispatch.Attributes;
-using Vesia.Dispatch.Interfaces.Behavior;
-using Vesia.Dispatch.Interfaces.Messaging;
 
-namespace Vesia.Dispatch.PipelineBehaviors;
+namespace Vesia.Dispatch;
 
 public class CommandOptInLoggingBehavior<TCommand, TResult>(ILogger<CommandOptInLoggingBehavior<TCommand, TResult>> logger)
     : ICommandPipelineBehavior<TCommand, TResult>

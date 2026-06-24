@@ -1,3 +1,3 @@
-namespace Vesia.Dispatch.Interfaces;
+namespace Vesia.Dispatch;
 
 public interface IHandler { }

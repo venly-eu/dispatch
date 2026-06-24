@@ -1,6 +1,5 @@
-using Vesia.Dispatch.Interfaces.Messaging;
 
-namespace Vesia.Dispatch.Interfaces.Behavior;
+namespace Vesia.Dispatch;
 
 public interface IQueryPipelineBehavior<in TQuery, TResult>
     where TQuery : IQuery<TResult>

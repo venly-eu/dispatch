@@ -1,10 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Vesia.Dispatch.Exceptions;
-using Vesia.Dispatch.Interfaces;
-using Vesia.Dispatch.Interfaces.Behavior;
-using Vesia.Dispatch.Interfaces.Messaging;
 
-namespace Vesia.Dispatch.Services;
+namespace Vesia.Dispatch;
 
 public class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
 {

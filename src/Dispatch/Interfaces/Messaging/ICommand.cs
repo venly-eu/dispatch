@@ -1,3 +1,3 @@
-namespace Vesia.Dispatch.Interfaces.Messaging;
+namespace Vesia.Dispatch;
 
 public interface ICommand<TResult> { }

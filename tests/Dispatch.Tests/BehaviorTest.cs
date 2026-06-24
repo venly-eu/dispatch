@@ -2,8 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using Vesia.Dispatch.Enums;
-using Vesia.Dispatch.Interfaces;
-using Vesia.Dispatch.PipelineBehaviors;
 using Vesia.Dispatch.Tests.Fakes.BehaviorPipeline;
 
 namespace Vesia.Dispatch.Tests;

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Vesia.Dispatch.Interfaces;
 using Vesia.Dispatch.Tests.Fakes.Notification;
 
 namespace Vesia.Dispatch.Tests;
