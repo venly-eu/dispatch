@@ -1,4 +1,4 @@
-namespace Vesia.Dispatch.Enums;
+namespace Vesia.Dispatch;
 
 public enum LoggingMode
 {
