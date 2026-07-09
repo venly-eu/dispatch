@@ -6,6 +6,7 @@ namespace Vesia.Dispatch;
 public static class ServiceCollectionExtensions
 {
     private record HandlerTypes(Type InputArgument, Type ResultArgument, Type Handler);
+    private record VoidHandlerTypes(Type InputArgument, Type Handler);
     private record NotificationTypes(Type InputArgument, Type Handler);
     
     public static IServiceCollection AddDispatch(
@@ -39,8 +40,25 @@ public static class ServiceCollectionExtensions
                         Handler: handler
                     )
                 )
-            )
-            .ToArray();
+            ).ToArray();
+        
+        var voidCommandHandlers = assemblies
+            .SelectMany(a => a.GetExportedTypes())
+            .Where(t => t is { IsClass: true, IsAbstract: false } && (t.IsPublic || t.IsNestedPublic))
+            .Where(t => t.GetInterfaces()
+                .Where(i => i.IsGenericType)
+                .Any(i => i.GetGenericTypeDefinition() == typeof(ICommandHandler<>)))
+            .SelectMany(handler => handler.GetInterfaces()
+                .Where(handlerInterface => 
+                    handlerInterface.IsGenericType
+                    && handlerInterface.GetGenericTypeDefinition() == typeof(ICommandHandler<>))
+                .Select(handlerInterface => new VoidHandlerTypes(
+                        InputArgument: handlerInterface.GetGenericArguments()[0],
+                        Handler: handler
+                    )
+                )
+            ).ToArray();
+        
         //Find QueryHandlers based on public, non-abstract, classes that implements the IQueryHandler interface
         //Select the Input/Output arguments plus the handler itself
         var queryHandlers = assemblies
@@ -59,8 +77,7 @@ public static class ServiceCollectionExtensions
                         Handler: handler
                     )
                 )
-            )
-            .ToArray();
+            ).ToArray();
         
         //Find NotificationHandlers based on public, non-abstract, classes that implements the INotification interface
         //Select the Input arguments plus the handler itself
@@ -79,8 +96,7 @@ public static class ServiceCollectionExtensions
                         Handler: handler
                     )
                 )
-            )
-            .ToArray();
+            ).ToArray();
 
         //Register Commands as scoped
         foreach (var command in commandHandlers)
@@ -100,6 +116,28 @@ public static class ServiceCollectionExtensions
                 .MakeGenericType(command.InputArgument, command.ResultArgument);
             var closedBehavior = behaviorType
                 .MakeGenericType(command.InputArgument, command.ResultArgument);
+            
+            services.AddScoped(behaviorInterface, closedBehavior);
+        }
+        
+        //Register void Commands as scoped
+        foreach (var command in voidCommandHandlers)
+        {
+            var genericType = typeof(ICommandHandler<>)
+                .MakeGenericType(command.InputArgument);
+
+            services.AddScoped(genericType, command.Handler);
+            
+            // register behavior wrapper if logging enabled
+            if (options.CommandLogging == LoggingMode.Disabled) continue;
+            var behaviorType = options.CommandLogging == LoggingMode.All
+                ? typeof(CommandLoggingBehavior<>)
+                : typeof(CommandOptInLoggingBehavior<>);
+            
+            var behaviorInterface = typeof(ICommandPipelineBehavior<>)
+                .MakeGenericType(command.InputArgument);
+            var closedBehavior = behaviorType
+                .MakeGenericType(command.InputArgument);
             
             services.AddScoped(behaviorInterface, closedBehavior);
         }

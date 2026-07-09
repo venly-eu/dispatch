@@ -23,3 +23,24 @@ public class CommandLoggingBehavior<TCommand, TResult>(ILogger<CommandLoggingBeh
         }
     }
 }
+
+public class CommandLoggingBehavior<TCommand>(ILogger<CommandLoggingBehavior<TCommand>> logger)
+    : ICommandPipelineBehavior<TCommand>
+    where TCommand : ICommand
+{
+    public async Task Handle(TCommand command, Func<Task> next, CancellationToken cancellationToken = default)
+    {
+        logger.LogInformation("Handling command {Command}", typeof(TCommand).Name);
+    
+        try
+        {
+            await next();
+            logger.LogInformation("Handled command {Command}", typeof(TCommand).Name);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error handling command {Command}", typeof(TCommand).Name);
+            throw;
+        }
+    }
+}

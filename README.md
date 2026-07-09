@@ -39,7 +39,7 @@ services.AddDispatch(options =>
 });
 ```
 
-### Commands
+### Commands With Return Types
 ```csharp
 // Define a command with a return
 public record CreateUserCommand(string Name) : ICommand<Guid>;
@@ -57,6 +57,25 @@ public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand, Guid>
 
 // Dispatch it
 var user = await dispatcher.DispatchAsync(new CreateUserCommand("Oliver"));
+```
+
+### Commands Without Return Types
+```csharp
+// Define a command with no return value
+public record CreateUserCommand(string Name) : ICommand;
+
+// Define a handler
+public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand>
+{
+    public async Task Handle(CreateUserCommand command, CancellationToken cancellationToken = default)
+    {
+        var user = new User(command.Name);
+        await _repository.SaveAsync(user, cancellationToken);
+    }
+}
+
+// Dispatch it
+await dispatcher.DispatchAsync(new CreateUserCommand("Oliver"));
 ```
 
 ### Queries

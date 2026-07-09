@@ -30,3 +30,30 @@ public class CommandOptInLoggingBehavior<TCommand, TResult>(ILogger<CommandOptIn
         }
     }
 }
+
+public class CommandOptInLoggingBehavior<TCommand>(ILogger<CommandOptInLoggingBehavior<TCommand>> logger)
+    : ICommandPipelineBehavior<TCommand>
+    where TCommand : ICommand
+{
+    public async Task Handle(TCommand command, Func<Task> next, CancellationToken cancellationToken = default)
+    {
+        var shouldLog = typeof(TCommand).GetCustomAttribute<LoggedAttribute>() is not null;
+        
+        try
+        {
+            if (shouldLog)
+                logger.LogInformation("Handling command {Command}", typeof(TCommand).Name);
+
+            await next();
+
+            if (shouldLog)
+                logger.LogInformation("Handled command {Command}", typeof(TCommand).Name);
+
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error handling command {Command}", typeof(TCommand).Name);
+            throw;
+        }
+    }
+}

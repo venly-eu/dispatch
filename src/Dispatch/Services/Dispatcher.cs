@@ -5,6 +5,7 @@ namespace Vesia.Dispatch;
 
 public class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
 {
+    // Command with Generic return
     public async Task<TResult> DispatchAsync<TResult>
         (ICommand<TResult> command, CancellationToken cancellationToken = default)
     {
@@ -32,7 +33,37 @@ public class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
 
         return await next();
     }
+    
+    //Command without return
+    public async Task DispatchAsync
+        (ICommand command, CancellationToken cancellationToken = default)
+    {
+        // resolve handler
+        var handlerType = typeof(ICommandHandler<>)
+            .MakeGenericType(command.GetType());
+        
+        dynamic handler = serviceProvider.GetService(handlerType) 
+                          ?? throw new HandlerNotFoundException(command.GetType().Name);
 
+        // resolve behaviors
+        var behaviorType = typeof(ICommandPipelineBehavior<>)
+            .MakeGenericType(command.GetType());
+        var behaviors = serviceProvider.GetServices(behaviorType);
+
+        // build chain
+        var next = (Func<Task>)(() => handler.Handle((dynamic)command, cancellationToken));
+        foreach (var behavior in behaviors.Reverse())
+        {
+            if (behavior is null) continue;
+            
+            var currentNext = next;
+            next = () => ((dynamic)behavior).Handle((dynamic)command, currentNext, cancellationToken);
+        }
+        
+        await next();
+    }
+
+    //Query
     public async Task<TResult> DispatchAsync<TResult>
         (IQuery<TResult> query, CancellationToken cancellationToken = default)
     {
