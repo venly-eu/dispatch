@@ -7,14 +7,20 @@ namespace Vesia.Dispatch.Tests;
 public class DispatcherTest
 {
     private readonly IDispatcher _dispatcher;
+    private readonly CallTracker _tracker;
 
     public DispatcherTest()
     {
+        _tracker = new CallTracker();
+
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddDispatch(null, typeof(DispatcherTest).Assembly);
+        services.AddSingleton(_tracker);
+
         _dispatcher = services.BuildServiceProvider().GetRequiredService<IDispatcher>();
     }
+
     
     [Fact]
     public async Task DispatchCommandTest()
@@ -22,6 +28,23 @@ public class DispatcherTest
         var command = new TestCommand();
         var result = await _dispatcher.DispatchAsync(command);
         Assert.Same("correct!", result);
+    }
+    
+    [Fact]
+    public async Task DispatchVoidCommandTest()
+    {
+        var command = new VoidCommand();
+        await _dispatcher.DispatchAsync(command);
+
+        Assert.True(_tracker.WasCalled);
+    }
+    
+    [Fact]
+    public async Task DispatchVoidCommandNoHandlerTest()
+    {
+        var wrongTestCommand = new VoidCommandNoHandler();
+        await Assert.ThrowsAsync<HandlerNotFoundException>(
+            () => _dispatcher.DispatchAsync(wrongTestCommand));
     }
     
     [Fact]

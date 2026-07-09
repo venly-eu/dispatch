@@ -12,19 +12,14 @@ Vesia.Dispatch uses the standard `Microsoft.Extensions.Logging` abstraction — 
 >
 > `Vesia.Dispatch` scans the assembly you provide at registration time to discover handlers. Make sure you call `AddDispatch` from the project that contains your commands, queries, and handlers — typically your **Application layer** — not from a referencing project like your API or host.
 >
-> ```csharp
-> // In your Application layer's DI registration
-> services.AddDispatch(typeof(SomeHandler).Assembly);
-> ```
->
 > Registering from the wrong assembly will result in a `HandlerNotFoundException` at runtime.
 
 # The types
-| Type | Returns | Handlers | Use case |~~~~
+| Type | Returns | Handlers | Use case |
 |------|---------|----------|----------|
 | Command | `TResult` | Exactly one | Write operations, state changes |
 | Query | `TResult` | Exactly one | Read operations, data retrieval |
-| Notification | Nothing | Zero or more | Domain events, fan-out |
+| Notification | `void` | Zero or more | Domain events, fan-out |
 
 
 # Getting started
@@ -36,6 +31,7 @@ dotnet add package Vesia.Dispatch
 
 ### Setup
 ```csharp
+// Remember to call this in the same asembly as your queries/commands and their handlers
 services.AddDispatch(options =>
 {
     options.CommandLogging = LoggingMode.All;
@@ -43,18 +39,19 @@ services.AddDispatch(options =>
 });
 ```
 
-### Commands
+### Commands With Return Types
 ```csharp
-// Define a command
-public record CreateUserCommand(string Name) : ICommand;
+// Define a command with a return
+public record CreateUserCommand(string Name) : ICommand<Guid>;
 
 // Define a handler
-public class CreateUserCommandHandler : ICommandHandler
+public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand, Guid>
 {
-    public async Task Handle(CreateUserCommand command, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
         var user = new User(command.Name);
-        return UserDto.From(user);
+
+        return user.Uid;
     }
 }
 
@@ -62,17 +59,37 @@ public class CreateUserCommandHandler : ICommandHandler
 var user = await dispatcher.DispatchAsync(new CreateUserCommand("Oliver"));
 ```
 
-### Queries
+### Commands Without Return Types
 ```csharp
-// Define a query
-public record GetUserQuery(Guid Id) : IQuery;
+// Define a command with no return value
+public record CreateUserCommand(string Name) : ICommand;
 
 // Define a handler
-public class GetUserQueryHandler : IQueryHandler
+public class CreateUserCommandHandler : ICommandHandler<CreateUserCommand>
 {
-    public async Task Handle(GetUserQuery query, CancellationToken cancellationToken)
+    public async Task Handle(CreateUserCommand command, CancellationToken cancellationToken = default)
     {
-        // fetch and return user
+        var user = new User(command.Name);
+        await _repository.SaveAsync(user, cancellationToken);
+    }
+}
+
+// Dispatch it
+await dispatcher.DispatchAsync(new CreateUserCommand("Oliver"));
+```
+
+### Queries
+```csharp
+// Define a query with a return type
+public record GetUserQuery(Guid Id) : IQuery<UserDto>;
+
+// Define a handler for the query by adding the query + return type
+public class GetUserQueryHandler : IQueryHandler<GetUserQuery, UserDto>
+{
+    public async Task<UserDto> Handle(GetUserQuery query, CancellationToken cancellationToken)
+    {
+        var user = await _repository.GetByIdAsync(query.Id); 
+        return new UserDto(user.Id, user.Name);
     }
 }
 
@@ -82,11 +99,12 @@ var user = await dispatcher.DispatchAsync(new GetUserQuery(id));
 
 ### Notifications
 ```csharp
-// Define a notification
-public record UserCreatedEvent(Guid UserId) : INotification;
+// Define a notification - No interface needed as long as it is a record and
+// the NotificationHandler Handle() includes it in its parameter 
+public record UserCreatedEvent(Guid UserId);
 
 // Define a handler (multiple allowed)
-public class SendWelcomeEmailHandler : INotificationHandler
+public class SendWelcomeEmailHandler : INotificationHandler<UserCreatedEvent>
 {
     public async Task Handle(UserCreatedEvent notification, CancellationToken cancellationToken)
     {
@@ -102,7 +120,7 @@ await dispatcher.PublishAsync(new UserCreatedEvent(user.Id));
 ```csharp
 // Mark specific queries for logging when using LoggingMode.OptIn
 [Logged]
-public record GetUserQuery(Guid Id) : IQuery;
+public record GetUserQuery(Guid Id) : IQuery<UserDto>;
 ```
 
 ### Custom Pipeline Behaviors
@@ -125,5 +143,4 @@ Register it in `Program.cs`:
 
 ```csharp
 services.AddCommandBehavior<ValidationBehavior>();
-services.AddQueryBehavior<MyQueryBehavior>();
 ```
