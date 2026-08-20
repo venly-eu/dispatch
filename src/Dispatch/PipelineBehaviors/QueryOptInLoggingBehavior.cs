@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Vesia.Dispatch;
 
-public class QueryOptInLoggingBehavior<TQuery, TResult>(ILogger<QueryOptInLoggingBehavior<TQuery, TResult>> logger)
+internal sealed class QueryOptInLoggingBehavior<TQuery, TResult>(ILogger<QueryOptInLoggingBehavior<TQuery, TResult>> logger)
     : IQueryPipelineBehavior<TQuery, TResult>
     where TQuery : IQuery<TResult>
 {

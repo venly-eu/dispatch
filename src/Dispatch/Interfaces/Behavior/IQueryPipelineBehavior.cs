@@ -3,7 +3,7 @@ namespace Vesia.Dispatch;
 
 /// <summary>
 /// Defines a pipeline behavior that wraps handling of a query returning <typeparamref name="TResult"/>.
-/// Behaviors run around the handler and can execute logic before and/or after calling <paramref name="next"/>,
+/// Behaviors run around the handler and can execute logic before and/or after calling <c>next</c>,
 /// such as logging, validation, or caching. Logging is the only built-in behavior; add your own by
 /// implementing this interface.
 /// </summary>

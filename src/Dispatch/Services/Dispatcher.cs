@@ -3,16 +3,8 @@ using Vesia.Dispatch.Exceptions;
 
 namespace Vesia.Dispatch;
 
-/// <summary>
-/// Dispatches commands and queries to their handlers via reflection-based DI resolution.
-/// Handlers are matched to commands/queries by closing the corresponding generic handler
-/// interface with the command/query's concrete type (and result type, where applicable).
-/// This link is not compile-time checked — a missing or mismatched handler registration
-/// throws <see cref="HandlerNotFoundException"/> at dispatch time.
-/// </summary>
-public class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
+internal sealed class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
 {
-    /// <summary>Dispatches a command that returns a result.</summary>
     public async Task<TResult> DispatchAsync<TResult>
         (ICommand<TResult> command, CancellationToken cancellationToken = default)
     {
@@ -40,7 +32,6 @@ public class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
         return await next();
     }
     
-    /// <summary>Dispatches a command with no return value.</summary>
     public async Task DispatchAsync
         (ICommand command, CancellationToken cancellationToken = default)
     {
@@ -67,8 +58,7 @@ public class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
         
         await next();
     }
-
-    /// <summary>Dispatches a query and returns its result.</summary>
+    
     public async Task<TResult> DispatchAsync<TResult>
         (IQuery<TResult> query, CancellationToken cancellationToken = default)
     {
