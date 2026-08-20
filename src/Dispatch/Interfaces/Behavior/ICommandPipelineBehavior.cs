@@ -3,7 +3,7 @@ namespace Vesia.Dispatch;
 
 /// <summary>
 /// Defines a pipeline behavior that wraps handling of a command returning <typeparamref name="TResult"/>.
-/// Behaviors run around the handler and can execute logic before and/or after calling <paramref name="next"/>,
+/// Behaviors run around the handler and can execute logic before and/or after calling <c>next</c>,
 /// such as logging, validation, or transaction management.
 /// </summary>
 /// <typeparam name="TCommand">The command type this behavior applies to.</typeparam>
@@ -21,7 +21,7 @@ public interface ICommandPipelineBehavior<in TCommand, TResult>
 
 /// <summary>
 /// Defines a pipeline behavior that wraps handling of a command with no return value.
-/// Behaviors run around the handler and can execute logic before and/or after calling <paramref name="next"/>,
+/// Behaviors run around the handler and can execute logic before and/or after calling <c>next</c>,
 /// such as logging, validation, or transaction management.
 /// </summary>
 /// <typeparam name="TCommand">The command type this behavior applies to.</typeparam>

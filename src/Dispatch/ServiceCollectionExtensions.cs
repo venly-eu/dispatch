@@ -3,6 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Vesia.Dispatch;
 
+/// <summary>
+/// Provides extension methods for registering Vesia.Dispatch's dispatcher, handlers, and
+/// pipeline behaviors with an <see cref="IServiceCollection"/>.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     private record HandlerTypes(Type InputArgument, Type ResultArgument, Type Handler);
@@ -11,6 +15,23 @@ public static class ServiceCollectionExtensions
 
     extension (IServiceCollection services)
     {
+        /// <summary>
+        /// Scans the given assemblies for command, query, and notification handlers and registers them
+        /// with the service collection, along with the <see cref="IDispatcher"/> implementation used to
+        /// invoke them. If logging is enabled via <paramref name="configure"/>, matching pipeline logging
+        /// behaviors are also registered for commands and/or queries.
+        /// </summary>
+        /// <param name="configure">
+        /// An optional delegate used to configure <see cref="DispatchOptions"/>, such as enabling command
+        /// or query logging behaviors. If <see langword="null"/>, default options are used (logging disabled).
+        /// </param>
+        /// <param name="assemblies">
+        /// The assemblies to scan for handler implementations (<see cref="ICommandHandler{TCommand,TResult}"/>,
+        /// <see cref="ICommandHandler{TCommand}"/>, <see cref="IQueryHandler{TQuery,TResult}"/>, and
+        /// <see cref="INotificationHandler{TNotification}"/>). If <see langword="null"/> or empty, the calling
+        /// assembly is scanned instead.
+        /// </param>
+        /// <returns>The same <see cref="IServiceCollection"/> instance, for chaining.</returns>
         public IServiceCollection AddDispatch(
             Action<DispatchOptions>? configure = null,
             params Assembly[]? assemblies)
@@ -27,7 +48,7 @@ public static class ServiceCollectionExtensions
             // Select the Input/Output arguments plus the handler itself
             var commandHandlers = assemblies
                 .SelectMany(a => a.GetExportedTypes())
-                .Where(t => t is { IsClass: true, IsAbstract: false } && (t.IsPublic || t.IsNestedPublic))
+                .Where(t => t is { IsClass: true, IsAbstract: false } && (t.IsPublic || t.IsNestedPublic)) //NestedPublic included to correctly register UnitTests
                 .Where(t => t.GetInterfaces()
                     .Where(i => i.IsGenericType)
                     .Any(i => i.GetGenericTypeDefinition() == typeof(ICommandHandler<,>)))
@@ -67,7 +88,7 @@ public static class ServiceCollectionExtensions
             // Select the Input/Output arguments plus the handler itself
             var queryHandlers = assemblies
                 .SelectMany(a => a.GetExportedTypes())
-                .Where(t => t is { IsClass: true, IsAbstract: false } && (t.IsPublic || t.IsNestedPublic))
+                .Where(t => t is { IsClass: true, IsAbstract: false } && (t.IsPublic || t.IsNestedPublic)) //NestedPublic included to correctly register UnitTests
                 .Where(t => t.GetInterfaces()
                     .Where(i => i.IsGenericType)
                     .Any(i => i.GetGenericTypeDefinition() == typeof(IQueryHandler<,>)))
@@ -87,7 +108,7 @@ public static class ServiceCollectionExtensions
             // Select the Input arguments plus the handler itself
             var notificationHandlers = assemblies
                 .SelectMany(a => a.GetExportedTypes())
-                .Where(t => t is { IsClass: true, IsAbstract: false } && (t.IsPublic || t.IsNestedPublic))
+                .Where(t => t is { IsClass: true, IsAbstract: false } && (t.IsPublic || t.IsNestedPublic)) //NestedPublic included to correctly register UnitTests
                 .Where(t => t.GetInterfaces()
                     .Where(i => i.IsGenericType)
                     .Any(i => i.GetGenericTypeDefinition() == typeof(INotificationHandler<>)))
@@ -185,6 +206,18 @@ public static class ServiceCollectionExtensions
             return services;
         }
     
+        /// <summary>
+        /// Registers a command pipeline behavior in the service collection, resolving the closed
+        /// <see cref="ICommandPipelineBehavior{TCommand,TResult}"/> interface implemented by
+        /// <typeparamref name="TBehavior"/> and registering it with a scoped lifetime.
+        /// </summary>
+        /// <typeparam name="TBehavior">
+        /// The behavior type to register. Must implement <see cref="ICommandPipelineBehavior{TCommand,TResult}"/>.
+        /// </typeparam>
+        /// <returns>The same <see cref="IServiceCollection"/> instance, for chaining.</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <typeparamref name="TBehavior"/> does not implement <see cref="ICommandPipelineBehavior{TCommand,TResult}"/>.
+        /// </exception>
         public IServiceCollection AddCommandBehavior<TBehavior>()
             where TBehavior : class
         {
@@ -196,10 +229,22 @@ public static class ServiceCollectionExtensions
             
             // Register behavior
             services.AddScoped(behaviorInterface, typeof(TBehavior));
-    
+
             return services;
         }
-        
+
+        /// <summary>
+        /// Registers a query pipeline behavior in the service collection, resolving the closed
+        /// <see cref="IQueryPipelineBehavior{TQuery,TResult}"/> interface implemented by
+        /// <typeparamref name="TBehavior"/> and registering it with a scoped lifetime.
+        /// </summary>
+        /// <typeparam name="TBehavior">
+        /// The behavior type to register. Must implement <see cref="IQueryPipelineBehavior{TQuery,TResult}"/>.
+        /// </typeparam>
+        /// <returns>The same <see cref="IServiceCollection"/> instance, for chaining.</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when <typeparamref name="TBehavior"/> does not implement <see cref="IQueryPipelineBehavior{TQuery,TResult}"/>.
+        /// </exception>
         public IServiceCollection AddQueryBehavior<TBehavior>()
             where TBehavior : class
         {
@@ -208,10 +253,10 @@ public static class ServiceCollectionExtensions
                 .FirstOrDefault(i => i.IsGenericType && 
                                      i.GetGenericTypeDefinition() == typeof(IQueryPipelineBehavior<,>)) 
                                     ?? throw new InvalidOperationException($"{typeof(TBehavior).Name} does not implement IQueryPipelineBehavior<,>");
-    
+
             // Register behavior
             services.AddScoped(behaviorInterface, typeof(TBehavior));
-    
+
             return services;
         }
     }

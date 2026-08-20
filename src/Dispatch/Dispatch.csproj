@@ -27,6 +27,14 @@
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
     </ItemGroup>
 
+    <PropertyGroup>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Vesia.Dispatch.Tests" />
+    </ItemGroup>
+
     <ItemGroup>
         <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>

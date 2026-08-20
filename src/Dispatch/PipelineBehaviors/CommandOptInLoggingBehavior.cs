@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Vesia.Dispatch;
 
-public class CommandOptInLoggingBehavior<TCommand, TResult>(ILogger<CommandOptInLoggingBehavior<TCommand, TResult>> logger)
+internal sealed class CommandOptInLoggingBehavior<TCommand, TResult>(ILogger<CommandOptInLoggingBehavior<TCommand, TResult>> logger)
     : ICommandPipelineBehavior<TCommand, TResult>
     where TCommand : ICommand<TResult>
 {
@@ -31,7 +31,7 @@ public class CommandOptInLoggingBehavior<TCommand, TResult>(ILogger<CommandOptIn
     }
 }
 
-public class CommandOptInLoggingBehavior<TCommand>(ILogger<CommandOptInLoggingBehavior<TCommand>> logger)
+internal sealed class CommandOptInLoggingBehavior<TCommand>(ILogger<CommandOptInLoggingBehavior<TCommand>> logger)
     : ICommandPipelineBehavior<TCommand>
     where TCommand : ICommand
 {
